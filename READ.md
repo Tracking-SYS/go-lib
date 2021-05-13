@@ -1,12 +1,20 @@
 # GUIDES
 
+## Preparation
+
+1. Install **golangci-lint** for Go linters aggregator. Follow [here](https://golangci-lint.run/usage/install/#local-installation)
+
 ## How to use
 
 1. This library use under as private package. So remember set env ```GOPRIVATE``` before import to it into your project
 
-        export GOPRIVATE=github.com/lk153/go-lib
+        export GOPRIVATE=github.com/lk153
 
-2. Import module path with package which you use
+2. Download package with latest version
+        
+        go get -u github.com/lk153/go-lib
+
+3. Import specific package
 
         import (
                 "github.com/lk153/go-lib/http"

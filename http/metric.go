@@ -12,10 +12,10 @@ import (
 )
 
 const (
-	httpLatencyName         = "http.server.requests.duration.seconds"
-	httpRequestNumberName   = "http.server.requests.number"
-	externalRequestsTotal   = "http.external.requests.total"
-	externalRequestsLatency = "http.external.requests.duration.seconds"
+	httpLatencyName       = "http.server.requests.duration.seconds"
+	httpRequestNumberName = "http.server.requests.number"
+	// externalRequestsTotal   = "http.external.requests.total"
+	// externalRequestsLatency = "http.external.requests.duration.seconds"
 )
 
 const (
@@ -48,6 +48,7 @@ func (c httpMetricsObserver) handler(next http.Handler) http.Handler {
 			httpCodeLabel.Int(ww.Status()),
 			httpMethodLabel.String(r.Method),
 			httpPathLabel.String(r.URL.Path),
+			httpHostLabel.String(r.URL.Host),
 		)
 
 		c.total_request.Add(r.Context(),
@@ -55,6 +56,7 @@ func (c httpMetricsObserver) handler(next http.Handler) http.Handler {
 			httpCodeLabel.Int(ww.Status()),
 			httpMethodLabel.String(r.Method),
 			httpPathLabel.String(r.URL.Path),
+			httpHostLabel.String(r.URL.Host),
 		)
 	}
 	return http.HandlerFunc(fn)
