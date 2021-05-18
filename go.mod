@@ -3,6 +3,7 @@ module github.com/lk153/go-lib
 go 1.16
 
 require (
+	github.com/confluentinc/confluent-kafka-go v1.7.0
 	github.com/go-chi/chi v1.5.4
 	github.com/go-chi/cors v1.2.0
 	github.com/google/go-cmp v0.5.5 // indirect

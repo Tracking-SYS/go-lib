@@ -1,0 +1,61 @@
+
+os: linux
+arch: arm64 
+dist: focal
+language: go
+go:
+  - 1.16.2
+
+# blocklist
+branches:
+  except:
+  - legacy
+
+# safelist
+branches:
+  only:
+  - main
+
+env:
+  global:
+    secure: a7C5GORF/IbrtkQc8yhk5URof75Ek3rR8o0VmS7ohl/6qyu2eOGgOQsY88XbbcKWeXXQ/jKEze1DM+GNn/qBoiPpmzVxvlBBRizAwKVTOLk6MTV7oqGj9nHEB1/R7jtd6I5BDFGX02PeB6+qun5rEDkrptXObVkXwLrxy2bxUtaQTj16MfMBQGQIYzjO9GpBHQwPhCEX8kLSu8RUZxRdKM+tv9ySEhCIV/jJAZdLyUgYNtO6gs2pMf7YJF7yU/qmrgDEPabKNg5CEQTCJZ08a4kQsSCluqhhHu5ukdp/PUw02cazaYNsiAUW6NQlPIvgXfI74MWLaGryxEJ3dkY/d5q9VP95tHcXX5Gvzw3+I1BR1dfOv6PP0eI7ZEdx0pu3p/pOkD+x57ekEOUAJJPjFoztdVyKm+6d/uTfDMCv4dbcuQ13iMX7+ht54/SM8reIIO6UfRPZvp7KuMmYUMhggzgI/xCn4peNJ4CswnAq9OgVKu4KtU98hPKGUqeUIURapwXFoT4fR+4eHqQoS95nV0o12+idUwLsGHEPZ1SZb6msAtlGDKQyDib/dzN5rup8rlw20ZT3/d2d5QASYkY0ZhgU/abnA1ok1vM1EmvZIXNIaSBdd53B5RmWzyGEGMoGw+2+DBv6iBBaHMGN3jcEt3sYXcllPi5MmzQgZvRyKVI=
+
+#Install
+before_install:
+  - uname -a
+  # - sudo apt-get update
+  # - wget -qO - https://packages.confluent.io/deb/6.1/archive.key | sudo apt-key add -
+  # - sudo add-apt-repository "deb [arch=amd64] https://packages.confluent.io/deb/6.1 stable main"
+  # - sudo apt-get update && sudo apt-get install librdkafka-dev
+  # - cd /home/travis/
+  # - git clone https://github.com/edenhill/librdkafka.git
+  # - cd librdkafka
+  # - ./configure
+  # - make
+  # - sudo make install
+
+install:
+  - cd /home/travis/gopath/src/github.com/lk153/go-lib
+  - go mod tidy
+  - go mod vendor
+
+#Script
+before_script:
+
+script: make lint
+
+after_success:
+  - echo "built sucessfully!"
+
+after_failure:
+  - echo "built failed!"
+
+#Deploy
+deploy:
+  skip_cleanup: true
+
+after_deploy:
+  - echo "deploy finished!"
+
+after_script:
+  - echo "Done!!!"
