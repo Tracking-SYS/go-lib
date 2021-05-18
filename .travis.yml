@@ -22,16 +22,8 @@ env:
 #Install
 before_install:
   - uname -a
-  # - sudo apt-get update
-  # - wget -qO - https://packages.confluent.io/deb/6.1/archive.key | sudo apt-key add -
-  # - sudo add-apt-repository "deb [arch=amd64] https://packages.confluent.io/deb/6.1 stable main"
-  # - sudo apt-get update && sudo apt-get install librdkafka-dev
-  # - cd /home/travis/
-  # - git clone https://github.com/edenhill/librdkafka.git
-  # - cd librdkafka
-  # - ./configure
-  # - make
-  # - sudo make install
+  - sudo apt-get update
+  - curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.40.1
 
 install:
   - cd /home/travis/gopath/src/github.com/lk153/go-lib
