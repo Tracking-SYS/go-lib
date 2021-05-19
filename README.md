@@ -1,5 +1,5 @@
-# GUIDES
-
+# GO LIB
+[![](https://travis-ci.com/lk153/go-lib.svg?branch=main)](https://travis-ci.com/github/lk153/go-lib/builds)
 ## Preparation
 
 1. Install **golangci-lint** for Go linters aggregator. Follow [here](https://golangci-lint.run/usage/install/#local-installation)
