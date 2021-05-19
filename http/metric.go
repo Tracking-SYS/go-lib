@@ -6,7 +6,7 @@ import (
 
 	"github.com/go-chi/chi/middleware"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
-	"go.opentelemetry.io/otel/label"
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/metric/global"
 )
@@ -19,10 +19,10 @@ const (
 )
 
 const (
-	httpCodeLabel   = label.Key("code")
-	httpMethodLabel = label.Key("method")
-	httpPathLabel   = label.Key("path")
-	httpHostLabel   = label.Key("host")
+	httpCodeLabel   = attribute.Key("code")
+	httpMethodLabel = attribute.Key("method")
+	httpPathLabel   = attribute.Key("path")
+	httpHostLabel   = attribute.Key("host")
 )
 
 type httpMetricsObserver struct {
