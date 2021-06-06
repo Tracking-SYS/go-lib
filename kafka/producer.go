@@ -11,24 +11,23 @@ import (
 )
 
 type KafkaProducer struct {
-	configFile *string
+	ConfigFile *string
 	conf       map[string]string
 }
 
 func (kp *KafkaProducer) InitConfig() error {
-	if *kp.configFile == "" {
+	if *kp.ConfigFile == "" {
 		fmt.Printf("empty configFile")
 		return fmt.Errorf("empty configFile")
 	}
 
-	kp.conf = ccloud.ReadCCloudConfig(*kp.configFile)
+	kp.conf = ccloud.ReadCCloudConfig(*kp.ConfigFile)
 	return nil
 }
 
 // CreateTopic creates a topic using the Admin Client API
 func CreateTopic(p *kafka.Producer, topic string) {
-
-	a, err := kafka.NewAdminClientFromProducer(p)
+	adminClient, err := kafka.NewAdminClientFromProducer(p)
 	if err != nil {
 		fmt.Printf("Failed to create new admin client from producer: %s", err)
 		os.Exit(1)
@@ -44,7 +43,7 @@ func CreateTopic(p *kafka.Producer, topic string) {
 		fmt.Printf("ParseDuration(60s): %s", err)
 		os.Exit(1)
 	}
-	results, err := a.CreateTopics(
+	results, err := adminClient.CreateTopics(
 		ctx,
 		// Multiple topics can be created simultaneously
 		// by providing more TopicSpecification structs here.
@@ -65,7 +64,7 @@ func CreateTopic(p *kafka.Producer, topic string) {
 		}
 		fmt.Printf("%v\n", result)
 	}
-	a.Close()
+	adminClient.Close()
 
 }
 
