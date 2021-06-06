@@ -25,6 +25,22 @@ func (kp *KafkaProducer) InitConfig() error {
 	return nil
 }
 
+func (kp *KafkaProducer) CreateProducerInstance() (*kafka.Producer, error) {
+	// Create Producer instance
+	producer, err := kafka.NewProducer(&kafka.ConfigMap{
+		"bootstrap.servers": kp.conf["bootstrap.servers"],
+		"sasl.mechanisms":   kp.conf["sasl.mechanisms"],
+		"security.protocol": kp.conf["security.protocol"],
+		"sasl.username":     kp.conf["sasl.username"],
+		"sasl.password":     kp.conf["sasl.password"]})
+	if err != nil {
+		fmt.Printf("Failed to create producer: %s", err)
+		return nil, err
+	}
+
+	return producer, nil
+}
+
 // CreateTopic creates a topic using the Admin Client API
 func CreateTopic(p *kafka.Producer, topic string) {
 	adminClient, err := kafka.NewAdminClientFromProducer(p)
@@ -69,21 +85,16 @@ func CreateTopic(p *kafka.Producer, topic string) {
 }
 
 func (kp *KafkaProducer) ProduceMessage(
-	configFile *string,
+	producer *kafka.Producer,
 	topic *string,
 	recordKey string,
 	recordValue string,
 ) error {
-	producer, err := kp.createProducerInstance()
-	if err != nil {
-		return err
-	}
-
 	// Create topic if needed
 	CreateTopic(producer, *topic)
 
 	deliveryChan := make(chan kafka.Event)
-	err = pushMessage(producer, topic, recordKey, recordValue, deliveryChan)
+	err := pushMessage(producer, topic, recordKey, recordValue, deliveryChan)
 	if err != nil {
 		return err
 	}
@@ -94,22 +105,6 @@ func (kp *KafkaProducer) ProduceMessage(
 	}
 
 	return nil
-}
-
-func (kp *KafkaProducer) createProducerInstance() (*kafka.Producer, error) {
-	// Create Producer instance
-	producer, err := kafka.NewProducer(&kafka.ConfigMap{
-		"bootstrap.servers": kp.conf["bootstrap.servers"],
-		"sasl.mechanisms":   kp.conf["sasl.mechanisms"],
-		"security.protocol": kp.conf["security.protocol"],
-		"sasl.username":     kp.conf["sasl.username"],
-		"sasl.password":     kp.conf["sasl.password"]})
-	if err != nil {
-		fmt.Printf("Failed to create producer: %s", err)
-		return nil, err
-	}
-
-	return producer, nil
 }
 
 func pushMessage(
