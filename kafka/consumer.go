@@ -16,11 +16,12 @@ import (
 type ConsumeRecordValue interface{}
 
 const (
-	BOOTSTRAP_SERVERS = "bootstrap.servers"
-	SASL_MECHANISMS   = "sasl.mechanisms"
-	SECURITY_PROTOCOL = "security.protocol"
-	SASL_USERNAME     = "sasl.username"
-	SASL_PASSWORD     = "sasl.password"
+	METADATA_BROKER_LIST = "metadata.broker.list"
+	BOOTSTRAP_SERVERS    = "bootstrap.servers"
+	SASL_MECHANISMS      = "sasl.mechanisms"
+	SECURITY_PROTOCOL    = "security.protocol"
+	SASL_USERNAME        = "sasl.username"
+	SASL_PASSWORD        = "sasl.password"
 )
 
 func Start() {
@@ -31,13 +32,18 @@ func Start() {
 	fmt.Print(conf[BOOTSTRAP_SERVERS])
 	// Create Consumer instance
 	c, err := kafka.NewConsumer(&kafka.ConfigMap{
-		BOOTSTRAP_SERVERS:   conf[BOOTSTRAP_SERVERS],
-		SASL_MECHANISMS:     conf[SASL_MECHANISMS],
-		SECURITY_PROTOCOL:   conf[SECURITY_PROTOCOL],
-		SASL_USERNAME:       conf[SASL_USERNAME],
-		SASL_PASSWORD:       conf[SASL_PASSWORD],
-		"group.id":          "go_example_group_1",
-		"auto.offset.reset": "earliest",
+		METADATA_BROKER_LIST:              conf[METADATA_BROKER_LIST],
+		BOOTSTRAP_SERVERS:                 conf[BOOTSTRAP_SERVERS],
+		SASL_MECHANISMS:                   conf[SASL_MECHANISMS],
+		SECURITY_PROTOCOL:                 conf[SECURITY_PROTOCOL],
+		SASL_USERNAME:                     conf[SASL_USERNAME],
+		SASL_PASSWORD:                     conf[SASL_PASSWORD],
+		"group.id":                        "cloudkarafka-example",
+		"go.events.channel.enable":        true,
+		"go.application.rebalance.enable": true,
+		"default.topic.config": kafka.ConfigMap{
+			"auto.offset.reset": "earliest",
+		},
 	})
 	if err != nil {
 		fmt.Printf("Failed to create consumer: %s", err)
