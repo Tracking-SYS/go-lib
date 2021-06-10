@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/confluentinc/confluent-kafka-go/kafka"
+	confluentKafka "github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/lk153/go-lib/kafka/ccloud"
 )
 
@@ -25,9 +25,9 @@ func (kp *KafkaProducer) InitConfig() error {
 	return nil
 }
 
-func (kp *KafkaProducer) CreateProducerInstance() (*kafka.Producer, error) {
+func (kp *KafkaProducer) CreateProducerInstance() (*confluentKafka.Producer, error) {
 	// Create Producer instance
-	producer, err := kafka.NewProducer(&kafka.ConfigMap{
+	producer, err := confluentKafka.NewProducer(&confluentKafka.ConfigMap{
 		"bootstrap.servers": kp.conf["bootstrap.servers"],
 		"sasl.mechanisms":   kp.conf["sasl.mechanisms"],
 		"security.protocol": kp.conf["security.protocol"],
@@ -42,8 +42,8 @@ func (kp *KafkaProducer) CreateProducerInstance() (*kafka.Producer, error) {
 }
 
 // CreateTopic creates a topic using the Admin Client API
-func CreateTopic(p *kafka.Producer, topic string) {
-	adminClient, err := kafka.NewAdminClientFromProducer(p)
+func CreateTopic(p *confluentKafka.Producer, topic string) {
+	adminClient, err := confluentKafka.NewAdminClientFromProducer(p)
 	if err != nil {
 		fmt.Printf("Failed to create new admin client from producer: %s", err)
 		os.Exit(1)
@@ -63,18 +63,18 @@ func CreateTopic(p *kafka.Producer, topic string) {
 		ctx,
 		// Multiple topics can be created simultaneously
 		// by providing more TopicSpecification structs here.
-		[]kafka.TopicSpecification{{
+		[]confluentKafka.TopicSpecification{{
 			Topic:             topic,
 			NumPartitions:     1,
 			ReplicationFactor: 3}},
 		// Admin options
-		kafka.SetAdminOperationTimeout(maxDur))
+		confluentKafka.SetAdminOperationTimeout(maxDur))
 	if err != nil {
 		fmt.Printf("Admin Client request error: %v\n", err)
 		os.Exit(1)
 	}
 	for _, result := range results {
-		if result.Error.Code() != kafka.ErrNoError && result.Error.Code() != kafka.ErrTopicAlreadyExists {
+		if result.Error.Code() != confluentKafka.ErrNoError && result.Error.Code() != confluentKafka.ErrTopicAlreadyExists {
 			fmt.Printf("Failed to create topic: %v\n", result.Error)
 			os.Exit(1)
 		}
@@ -85,7 +85,7 @@ func CreateTopic(p *kafka.Producer, topic string) {
 }
 
 func (kp *KafkaProducer) ProduceMessage(
-	producer *kafka.Producer,
+	producer *confluentKafka.Producer,
 	topic *string,
 	recordKey string,
 	recordValue string,
@@ -93,7 +93,7 @@ func (kp *KafkaProducer) ProduceMessage(
 	// Create topic if needed
 	CreateTopic(producer, *topic)
 
-	deliveryChan := make(chan kafka.Event)
+	deliveryChan := make(chan confluentKafka.Event)
 	err := pushMessage(producer, topic, recordKey, recordValue, deliveryChan)
 	if err != nil {
 		return err
@@ -108,14 +108,14 @@ func (kp *KafkaProducer) ProduceMessage(
 }
 
 func pushMessage(
-	producer *kafka.Producer,
+	producer *confluentKafka.Producer,
 	topic *string,
 	recordKey string,
 	recordValue string,
-	deliveryChan chan kafka.Event,
+	deliveryChan chan confluentKafka.Event,
 ) error {
-	err := producer.Produce(&kafka.Message{
-		TopicPartition: kafka.TopicPartition{Topic: topic, Partition: int32(kafka.PartitionAny)},
+	err := producer.Produce(&confluentKafka.Message{
+		TopicPartition: confluentKafka.TopicPartition{Topic: topic, Partition: int32(confluentKafka.PartitionAny)},
 		Key:            []byte(recordKey),
 		Value:          []byte(recordValue),
 	}, deliveryChan)
@@ -128,9 +128,9 @@ func pushMessage(
 	return nil
 }
 
-func checkMessageDeliver(deliveryChan chan kafka.Event) error {
+func checkMessageDeliver(deliveryChan chan confluentKafka.Event) error {
 	kafkaEvent := <-deliveryChan
-	msg := kafkaEvent.(*kafka.Message)
+	msg := kafkaEvent.(*confluentKafka.Message)
 
 	if msg.TopicPartition.Error != nil {
 		fmt.Printf("Delivery failed: %v\n", msg.TopicPartition.Error)
