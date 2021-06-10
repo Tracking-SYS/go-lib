@@ -27,18 +27,15 @@ import (
 var configFile *string
 var topic *string
 
-// func init() {
-// 	if flag.Lookup("f") == nil {
-// 		configFile = flag.String("f", "", "Path to Confluent Cloud configuration file")
-// 	}
-// 	if flag.Lookup("t") == nil {
-// 		topic = flag.String("t", "", "Topic name")
-// 	}
-// }
-
 // ParseArgs parses the command line arguments and
 // returns the config file and topic on success, or exits on error
 func ParseArgs() (*string, *string) {
+	if flag.Lookup("f") == nil {
+		configFile = flag.String("f", "", "Path to Confluent Cloud configuration file")
+	}
+	if flag.Lookup("t") == nil {
+		topic = flag.String("t", "", "Topic name")
+	}
 
 	flag.Parse()
 	if *configFile == "" || *topic == "" {
