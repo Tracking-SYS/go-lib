@@ -88,7 +88,6 @@ func ProduceMessage(
 	producer *confluentKafka.Producer,
 	topic *string,
 	recordValue string,
-	deliveryChan chan confluentKafka.Event,
 ) error {
 	doneChan := make(chan bool)
 	go func() {
