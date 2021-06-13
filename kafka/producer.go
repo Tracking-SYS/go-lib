@@ -26,7 +26,7 @@ func (kp *KafkaProducer) InitConfig() error {
 	return nil
 }
 
-func (kp *KafkaProducer) CreateProducerInstance() (*confluentKafka.Producer, error) {
+func (kp *KafkaProducer) CreateProducerInstance() error {
 	// Create Producer instance
 	producer, err := confluentKafka.NewProducer(&confluentKafka.ConfigMap{
 		ccloud.BOOTSTRAP_SERVERS: kp.conf[ccloud.BOOTSTRAP_SERVERS],
@@ -36,11 +36,11 @@ func (kp *KafkaProducer) CreateProducerInstance() (*confluentKafka.Producer, err
 		ccloud.SASL_PASSWORD:     kp.conf[ccloud.SASL_PASSWORD]})
 	if err != nil {
 		fmt.Printf("Failed to create producer: %s", err)
-		return nil, err
+		return err
 	}
 
 	kp.producer = producer
-	return producer, nil
+	return nil
 }
 
 // CreateTopic creates a topic using the Admin Client API
@@ -61,6 +61,7 @@ func (kp *KafkaProducer) CreateTopic(topic string) {
 		fmt.Printf("ParseDuration(60s): %s", err)
 		os.Exit(1)
 	}
+	
 	results, err := adminClient.CreateTopics(
 		ctx,
 		// Multiple topics can be created simultaneously
@@ -70,11 +71,14 @@ func (kp *KafkaProducer) CreateTopic(topic string) {
 			NumPartitions:     1,
 			ReplicationFactor: 3}},
 		// Admin options
-		confluentKafka.SetAdminOperationTimeout(maxDur))
+		confluentKafka.SetAdminOperationTimeout(maxDur)
+	)
+
 	if err != nil {
 		fmt.Printf("Admin Client request error: %v\n", err)
 		os.Exit(1)
 	}
+
 	for _, result := range results {
 		if result.Error.Code() != confluentKafka.ErrNoError && result.Error.Code() != confluentKafka.ErrTopicAlreadyExists {
 			fmt.Printf("Failed to create topic: %v\n", result.Error)
@@ -82,8 +86,8 @@ func (kp *KafkaProducer) CreateTopic(topic string) {
 		}
 		fmt.Printf("%v\n", result)
 	}
-	adminClient.Close()
 
+	adminClient.Close()
 }
 
 func (kp *KafkaProducer) ProduceMessage(
