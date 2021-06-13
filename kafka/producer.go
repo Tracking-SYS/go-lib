@@ -13,6 +13,7 @@ import (
 type KafkaProducer struct {
 	ConfigFile *string
 	conf       map[string]string
+	producer   *confluentKafka.Producer
 }
 
 func (kp *KafkaProducer) InitConfig() error {
@@ -42,8 +43,8 @@ func (kp *KafkaProducer) CreateProducerInstance() (*confluentKafka.Producer, err
 }
 
 // CreateTopic creates a topic using the Admin Client API
-func CreateTopic(p *confluentKafka.Producer, topic string) {
-	adminClient, err := confluentKafka.NewAdminClientFromProducer(p)
+func (kp *KafkaProducer) CreateTopic(topic string) {
+	adminClient, err := confluentKafka.NewAdminClientFromProducer(kp.producer)
 	if err != nil {
 		fmt.Printf("Failed to create new admin client from producer: %s", err)
 		os.Exit(1)
@@ -84,15 +85,14 @@ func CreateTopic(p *confluentKafka.Producer, topic string) {
 
 }
 
-func ProduceMessage(
-	producer *confluentKafka.Producer,
+func (kp *KafkaProducer) ProduceMessage(
 	topic *string,
 	recordValue string,
 ) error {
 	doneChan := make(chan bool)
 	go func() {
 		defer close(doneChan)
-		for e := range producer.Events() {
+		for e := range kp.producer.Events() {
 			switch ev := e.(type) {
 			case *confluentKafka.Message:
 				m := ev
@@ -116,7 +116,7 @@ func ProduceMessage(
 			Partition: confluentKafka.PartitionAny,
 		}, Value: []byte(recordValue),
 	}
-	producer.ProduceChannel() <- msg
+	kp.producer.ProduceChannel() <- msg
 
 	// wait for delivery report goroutine to finish
 	<-doneChan
