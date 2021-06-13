@@ -59,10 +59,16 @@ func Start() {
 			switch e := ev.(type) {
 			case kafka.AssignedPartitions:
 				fmt.Fprintf(os.Stderr, "%% %v\n", e)
-				c.Assign(e.Partitions)
+				err = c.Assign(e.Partitions)
+				if err != nil {
+					fmt.Printf("Assign has error: %v", err)
+				}
 			case kafka.RevokedPartitions:
 				fmt.Fprintf(os.Stderr, "%% %v\n", e)
-				c.Unassign()
+				err = c.Unassign()
+				if err != nil {
+					fmt.Printf("Unassign has error: %v", err)
+				}
 			case *kafka.Message:
 				fmt.Printf("%% Message on %s:\n%s\n",
 					e.TopicPartition, string(e.Value))

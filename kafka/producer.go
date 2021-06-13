@@ -61,7 +61,7 @@ func (kp *KafkaProducer) CreateTopic(topic string) {
 		fmt.Printf("ParseDuration(60s): %s", err)
 		os.Exit(1)
 	}
-	
+
 	results, err := adminClient.CreateTopics(
 		ctx,
 		// Multiple topics can be created simultaneously
@@ -71,7 +71,7 @@ func (kp *KafkaProducer) CreateTopic(topic string) {
 			NumPartitions:     1,
 			ReplicationFactor: 3}},
 		// Admin options
-		confluentKafka.SetAdminOperationTimeout(maxDur)
+		confluentKafka.SetAdminOperationTimeout(maxDur),
 	)
 
 	if err != nil {
