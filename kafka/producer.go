@@ -39,6 +39,7 @@ func (kp *KafkaProducer) CreateProducerInstance() (*confluentKafka.Producer, err
 		return nil, err
 	}
 
+	kp.producer = producer
 	return producer, nil
 }
 
