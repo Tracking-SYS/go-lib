@@ -68,9 +68,9 @@ func Start() {
 			fmt.Printf("Caught signal %v: terminating\n", sig)
 			run = false
 		default:
-			msg, err := c.ReadMessage(100 * time.Millisecond)
+			msg, err := c.ReadMessage(1000 * time.Millisecond)
 			if err != nil {
-				// Errors are informational and automatically handled by the consumer
+				fmt.Printf("Failed to read message: %v", err)
 				continue
 			}
 			recordKey := string(msg.Key)
