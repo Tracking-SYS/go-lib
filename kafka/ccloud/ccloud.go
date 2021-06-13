@@ -27,6 +27,18 @@ import (
 var configFile *string
 var topic *string
 
+const (
+	METADATA_BROKER_LIST            = "metadata.broker.list"
+	BOOTSTRAP_SERVERS               = "bootstrap.servers"
+	SASL_MECHANISMS                 = "sasl.mechanisms"
+	SECURITY_PROTOCOL               = "security.protocol"
+	SASL_USERNAME                   = "sasl.username"
+	SASL_PASSWORD                   = "sasl.password"
+	GROUP_ID                        = "group.id"
+	GO_EVENTS_CHANNEL_ENABLE        = "go.events.channel.enable"
+	GO_APPLICATION_REBALANCE_ENABLE = "go.application.rebalance.enable"
+)
+
 // ParseArgs parses the command line arguments and
 // returns the config file and topic on success, or exits on error
 func ParseArgs() (*string, *string) {

@@ -1,12 +1,10 @@
 package kafka
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/lk153/go-lib/kafka/ccloud"
@@ -15,35 +13,25 @@ import (
 // ConsumeRecordValue represents the struct of the value in a Kafka message
 type ConsumeRecordValue interface{}
 
-const (
-	METADATA_BROKER_LIST = "metadata.broker.list"
-	BOOTSTRAP_SERVERS    = "bootstrap.servers"
-	SASL_MECHANISMS      = "sasl.mechanisms"
-	SECURITY_PROTOCOL    = "security.protocol"
-	SASL_USERNAME        = "sasl.username"
-	SASL_PASSWORD        = "sasl.password"
-)
-
 func Start() {
 	// Initialization
 	configFile, topic := ccloud.ParseArgs()
 	conf := ccloud.ReadCCloudConfig(*configFile)
 
-	fmt.Print(conf[BOOTSTRAP_SERVERS])
+	fmt.Print(conf[ccloud.BOOTSTRAP_SERVERS])
 	// Create Consumer instance
 	c, err := kafka.NewConsumer(&kafka.ConfigMap{
-		METADATA_BROKER_LIST:              conf[METADATA_BROKER_LIST],
-		BOOTSTRAP_SERVERS:                 conf[BOOTSTRAP_SERVERS],
-		SASL_MECHANISMS:                   conf[SASL_MECHANISMS],
-		SECURITY_PROTOCOL:                 conf[SECURITY_PROTOCOL],
-		SASL_USERNAME:                     conf[SASL_USERNAME],
-		SASL_PASSWORD:                     conf[SASL_PASSWORD],
-		"group.id":                        "cloudkarafka-example",
+		ccloud.METADATA_BROKER_LIST:       conf[ccloud.METADATA_BROKER_LIST],
+		ccloud.BOOTSTRAP_SERVERS:          conf[ccloud.BOOTSTRAP_SERVERS],
+		ccloud.SASL_MECHANISMS:            conf[ccloud.SASL_MECHANISMS],
+		ccloud.SECURITY_PROTOCOL:          conf[ccloud.SECURITY_PROTOCOL],
+		ccloud.SASL_USERNAME:              conf[ccloud.SASL_USERNAME],
+		ccloud.SASL_PASSWORD:              conf[ccloud.SASL_PASSWORD],
+		ccloud.GROUP_ID:                   conf[ccloud.GROUP_ID],
 		"go.events.channel.enable":        true,
 		"go.application.rebalance.enable": true,
-		"default.topic.config": kafka.ConfigMap{
-			"auto.offset.reset": "earliest",
-		},
+		"enable.partition.eof":            true,
+		"auto.offset.reset":               "earliest",
 	})
 	if err != nil {
 		fmt.Printf("Failed to create consumer: %s", err)
@@ -67,21 +55,23 @@ func Start() {
 		case sig := <-sigchan:
 			fmt.Printf("Caught signal %v: terminating\n", sig)
 			run = false
-		default:
-			msg, err := c.ReadMessage(1000 * time.Millisecond)
-			if err != nil {
-				fmt.Printf("Failed to read message: %v", err)
-				continue
+		case ev := <-c.Events():
+			switch e := ev.(type) {
+			case kafka.AssignedPartitions:
+				fmt.Fprintf(os.Stderr, "%% %v\n", e)
+				c.Assign(e.Partitions)
+			case kafka.RevokedPartitions:
+				fmt.Fprintf(os.Stderr, "%% %v\n", e)
+				c.Unassign()
+			case *kafka.Message:
+				fmt.Printf("%% Message on %s:\n%s\n",
+					e.TopicPartition, string(e.Value))
+			case kafka.PartitionEOF:
+				fmt.Printf("%% Reached %v\n", e)
+			case kafka.Error:
+				// Errors should generally be considered as informational, the client will try to automatically recover
+				fmt.Fprintf(os.Stderr, "%% Error: %v\n", e)
 			}
-			recordKey := string(msg.Key)
-			recordValue := msg.Value
-			var data ConsumeRecordValue
-			err = json.Unmarshal(recordValue, &data)
-			if err != nil {
-				fmt.Printf("Failed to decode JSON at offset %d: %v", msg.TopicPartition.Offset, err)
-				continue
-			}
-			fmt.Printf("Consumed record with key %s and value %s\n", recordKey, recordValue)
 		}
 	}
 

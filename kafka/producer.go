@@ -28,11 +28,11 @@ func (kp *KafkaProducer) InitConfig() error {
 func (kp *KafkaProducer) CreateProducerInstance() (*confluentKafka.Producer, error) {
 	// Create Producer instance
 	producer, err := confluentKafka.NewProducer(&confluentKafka.ConfigMap{
-		"bootstrap.servers": kp.conf["bootstrap.servers"],
-		"sasl.mechanisms":   kp.conf["sasl.mechanisms"],
-		"security.protocol": kp.conf["security.protocol"],
-		"sasl.username":     kp.conf["sasl.username"],
-		"sasl.password":     kp.conf["sasl.password"]})
+		ccloud.BOOTSTRAP_SERVERS: kp.conf[ccloud.BOOTSTRAP_SERVERS],
+		ccloud.SASL_MECHANISMS:   kp.conf[ccloud.SASL_MECHANISMS],
+		ccloud.SECURITY_PROTOCOL: kp.conf[ccloud.SECURITY_PROTOCOL],
+		ccloud.SASL_USERNAME:     kp.conf[ccloud.SASL_USERNAME],
+		ccloud.SASL_PASSWORD:     kp.conf[ccloud.SASL_PASSWORD]})
 	if err != nil {
 		fmt.Printf("Failed to create producer: %s", err)
 		return nil, err
@@ -84,62 +84,43 @@ func CreateTopic(p *confluentKafka.Producer, topic string) {
 
 }
 
-func (kp *KafkaProducer) ProduceMessage(
+func ProduceMessage(
 	producer *confluentKafka.Producer,
 	topic *string,
-	recordKey string,
-	recordValue string,
-) error {
-	// Create topic if needed
-	CreateTopic(producer, *topic)
-
-	deliveryChan := make(chan confluentKafka.Event)
-	err := pushMessage(producer, topic, recordKey, recordValue, deliveryChan)
-	if err != nil {
-		return err
-	}
-
-	err = checkMessageDeliver(deliveryChan)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func pushMessage(
-	producer *confluentKafka.Producer,
-	topic *string,
-	recordKey string,
 	recordValue string,
 	deliveryChan chan confluentKafka.Event,
 ) error {
-	err := producer.Produce(&confluentKafka.Message{
-		TopicPartition: confluentKafka.TopicPartition{Topic: topic, Partition: int32(confluentKafka.PartitionAny)},
-		Key:            []byte(recordKey),
-		Value:          []byte(recordValue),
-	}, deliveryChan)
+	doneChan := make(chan bool)
+	go func() {
+		defer close(doneChan)
+		for e := range producer.Events() {
+			switch ev := e.(type) {
+			case *confluentKafka.Message:
+				m := ev
+				if m.TopicPartition.Error != nil {
+					fmt.Printf("Delivery failed: %v\n", m.TopicPartition.Error)
+				} else {
+					fmt.Printf("Delivered message to topic %s [%d] at offset %v\n",
+						*m.TopicPartition.Topic, m.TopicPartition.Partition, m.TopicPartition.Offset)
+				}
+				return
 
-	if err != nil {
-		fmt.Printf("Produce message has error: key %v, val %v", recordKey, recordValue)
-		return err
+			default:
+				fmt.Printf("Ignored event: %s\n", ev)
+			}
+		}
+	}()
+
+	msg := &confluentKafka.Message{
+		TopicPartition: confluentKafka.TopicPartition{
+			Topic:     topic,
+			Partition: confluentKafka.PartitionAny,
+		}, Value: []byte(recordValue),
 	}
+	producer.ProduceChannel() <- msg
 
-	return nil
-}
+	// wait for delivery report goroutine to finish
+	<-doneChan
 
-func checkMessageDeliver(deliveryChan chan confluentKafka.Event) error {
-	kafkaEvent := <-deliveryChan
-	msg := kafkaEvent.(*confluentKafka.Message)
-
-	if msg.TopicPartition.Error != nil {
-		fmt.Printf("Delivery failed: %v\n", msg.TopicPartition.Error)
-		return msg.TopicPartition.Error
-	} else {
-		fmt.Printf("Delivered message to topic %s [%d] at offset %v\n",
-			*msg.TopicPartition.Topic, msg.TopicPartition.Partition, msg.TopicPartition.Offset)
-	}
-
-	close(deliveryChan)
 	return nil
 }
