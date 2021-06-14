@@ -18,7 +18,7 @@ func Start(consumerOuput chan []byte) {
 	configFile, topic := ccloud.ParseArgs()
 	conf := ccloud.ReadCCloudConfig(*configFile)
 
-	fmt.Print(conf[ccloud.BOOTSTRAP_SERVERS])
+	fmt.Printf("Kafka bootstrap servers: %v", conf[ccloud.BOOTSTRAP_SERVERS])
 	// Create Consumer instance
 	c, err := kafka.NewConsumer(&kafka.ConfigMap{
 		ccloud.METADATA_BROKER_LIST:       conf[ccloud.METADATA_BROKER_LIST],
@@ -44,6 +44,7 @@ func Start(consumerOuput chan []byte) {
 		fmt.Printf("SubscribeTopics has error: %v\n", err)
 	}
 
+	fmt.Printf("Topic %v has subscribed", *topic)
 	// Set up a channel for handling Ctrl-C, etc
 	sigchan := make(chan os.Signal, 1)
 	signal.Notify(sigchan, syscall.SIGINT, syscall.SIGTERM)
@@ -59,12 +60,14 @@ func Start(consumerOuput chan []byte) {
 			switch e := ev.(type) {
 			case kafka.AssignedPartitions:
 				fmt.Fprintf(os.Stderr, "%% %v\n", e)
+				fmt.Printf("AssignedPartitions error: %v\n", e)
 				err = c.Assign(e.Partitions)
 				if err != nil {
 					fmt.Printf("Assign has error: %v", err)
 				}
 			case kafka.RevokedPartitions:
 				fmt.Fprintf(os.Stderr, "%% %v\n", e)
+				fmt.Printf("RevokedPartitions error: %v\n", e)
 				err = c.Unassign()
 				if err != nil {
 					fmt.Printf("Unassign has error: %v", err)
@@ -78,6 +81,7 @@ func Start(consumerOuput chan []byte) {
 			case kafka.Error:
 				// Errors should generally be considered as informational, the client will try to automatically recover
 				fmt.Fprintf(os.Stderr, "%% Error: %v\n", e)
+				fmt.Printf("Kafka Error: %v\n", e)
 			}
 		}
 	}

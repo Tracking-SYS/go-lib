@@ -29,11 +29,12 @@ func (kp *KafkaProducer) InitConfig() error {
 func (kp *KafkaProducer) CreateProducerInstance() error {
 	// Create Producer instance
 	producer, err := confluentKafka.NewProducer(&confluentKafka.ConfigMap{
-		ccloud.BOOTSTRAP_SERVERS: kp.conf[ccloud.BOOTSTRAP_SERVERS],
-		ccloud.SASL_MECHANISMS:   kp.conf[ccloud.SASL_MECHANISMS],
-		ccloud.SECURITY_PROTOCOL: kp.conf[ccloud.SECURITY_PROTOCOL],
-		ccloud.SASL_USERNAME:     kp.conf[ccloud.SASL_USERNAME],
-		ccloud.SASL_PASSWORD:     kp.conf[ccloud.SASL_PASSWORD]})
+		ccloud.METADATA_BROKER_LIST: kp.conf[ccloud.METADATA_BROKER_LIST],
+		ccloud.BOOTSTRAP_SERVERS:    kp.conf[ccloud.BOOTSTRAP_SERVERS],
+		ccloud.SASL_MECHANISMS:      kp.conf[ccloud.SASL_MECHANISMS],
+		ccloud.SECURITY_PROTOCOL:    kp.conf[ccloud.SECURITY_PROTOCOL],
+		ccloud.SASL_USERNAME:        kp.conf[ccloud.SASL_USERNAME],
+		ccloud.SASL_PASSWORD:        kp.conf[ccloud.SASL_PASSWORD]})
 	if err != nil {
 		fmt.Printf("Failed to create producer: %s", err)
 		return err
