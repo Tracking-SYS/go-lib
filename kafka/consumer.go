@@ -13,7 +13,7 @@ import (
 // ConsumeRecordValue represents the struct of the value in a Kafka message
 type ConsumeRecordValue interface{}
 
-func Start() {
+func Start(consumerOuput chan []byte) {
 	// Initialization
 	configFile, topic := ccloud.ParseArgs()
 	conf := ccloud.ReadCCloudConfig(*configFile)
@@ -72,6 +72,7 @@ func Start() {
 			case *kafka.Message:
 				fmt.Printf("%% Message on %s:\n%s\n",
 					e.TopicPartition, string(e.Value))
+				consumerOuput <- e.Value
 			case kafka.PartitionEOF:
 				fmt.Printf("%% Reached %v\n", e)
 			case kafka.Error:
