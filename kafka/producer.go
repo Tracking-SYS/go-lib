@@ -18,7 +18,7 @@ type KafkaProducer struct {
 
 func (kp *KafkaProducer) InitConfig() error {
 	if *kp.ConfigFile == "" {
-		fmt.Printf("empty configFile")
+		fmt.Printf("empty configFile\n")
 		return fmt.Errorf("empty configFile")
 	}
 
@@ -36,7 +36,7 @@ func (kp *KafkaProducer) CreateProducerInstance() error {
 		ccloud.SASL_USERNAME:        kp.conf[ccloud.SASL_USERNAME],
 		ccloud.SASL_PASSWORD:        kp.conf[ccloud.SASL_PASSWORD]})
 	if err != nil {
-		fmt.Printf("Failed to create producer: %s", err)
+		fmt.Printf("Failed to create producer: %s\n", err)
 		return err
 	}
 
@@ -48,7 +48,7 @@ func (kp *KafkaProducer) CreateProducerInstance() error {
 func (kp *KafkaProducer) CreateTopic(topic string) {
 	adminClient, err := confluentKafka.NewAdminClientFromProducer(kp.producer)
 	if err != nil {
-		fmt.Printf("Failed to create new admin client from producer: %s", err)
+		fmt.Printf("Failed to create new admin client from producer: %s\n", err)
 		os.Exit(1)
 	}
 	// Contexts are used to abort or limit the amount of time
@@ -59,7 +59,7 @@ func (kp *KafkaProducer) CreateTopic(topic string) {
 	// Set Admin options to wait up to 60s for the operation to finish on the remote cluster
 	maxDur, err := time.ParseDuration("60s")
 	if err != nil {
-		fmt.Printf("ParseDuration(60s): %s", err)
+		fmt.Printf("ParseDuration(60s): %s\n", err)
 		os.Exit(1)
 	}
 

@@ -18,23 +18,22 @@ func Start(consumerOuput chan []byte) {
 	configFile, topic := ccloud.ParseArgs()
 	conf := ccloud.ReadCCloudConfig(*configFile)
 
-	fmt.Printf("Kafka bootstrap servers: %v", conf[ccloud.BOOTSTRAP_SERVERS])
+	fmt.Printf("Kafka bootstrap servers: %v\n", conf[ccloud.BOOTSTRAP_SERVERS])
 	// Create Consumer instance
 	c, err := kafka.NewConsumer(&kafka.ConfigMap{
-		ccloud.METADATA_BROKER_LIST:       conf[ccloud.METADATA_BROKER_LIST],
-		ccloud.BOOTSTRAP_SERVERS:          conf[ccloud.BOOTSTRAP_SERVERS],
-		ccloud.SASL_MECHANISMS:            conf[ccloud.SASL_MECHANISMS],
-		ccloud.SECURITY_PROTOCOL:          conf[ccloud.SECURITY_PROTOCOL],
-		ccloud.SASL_USERNAME:              conf[ccloud.SASL_USERNAME],
-		ccloud.SASL_PASSWORD:              conf[ccloud.SASL_PASSWORD],
-		ccloud.GROUP_ID:                   conf[ccloud.GROUP_ID],
-		"go.events.channel.enable":        true,
-		"go.application.rebalance.enable": true,
-		"enable.partition.eof":            true,
-		"auto.offset.reset":               "earliest",
+		ccloud.METADATA_BROKER_LIST: conf[ccloud.METADATA_BROKER_LIST],
+		ccloud.BOOTSTRAP_SERVERS:    conf[ccloud.BOOTSTRAP_SERVERS],
+		ccloud.SASL_MECHANISMS:      conf[ccloud.SASL_MECHANISMS],
+		ccloud.SECURITY_PROTOCOL:    conf[ccloud.SECURITY_PROTOCOL],
+		ccloud.SASL_USERNAME:        conf[ccloud.SASL_USERNAME],
+		ccloud.SASL_PASSWORD:        conf[ccloud.SASL_PASSWORD],
+		ccloud.GROUP_ID:             conf[ccloud.GROUP_ID],
+		"go.events.channel.enable":  true,
+		"enable.partition.eof":      true,
+		"auto.offset.reset":         "earliest",
 	})
 	if err != nil {
-		fmt.Printf("Failed to create consumer: %s", err)
+		fmt.Printf("Failed to create consumer: %s\n", err)
 		os.Exit(1)
 	}
 
@@ -44,7 +43,7 @@ func Start(consumerOuput chan []byte) {
 		fmt.Printf("SubscribeTopics has error: %v\n", err)
 	}
 
-	fmt.Printf("Topic %v has subscribed", *topic)
+	fmt.Printf("Topic %v has been subscribed\n", *topic)
 	// Set up a channel for handling Ctrl-C, etc
 	sigchan := make(chan os.Signal, 1)
 	signal.Notify(sigchan, syscall.SIGINT, syscall.SIGTERM)
@@ -59,28 +58,27 @@ func Start(consumerOuput chan []byte) {
 		case ev := <-c.Events():
 			switch e := ev.(type) {
 			case kafka.AssignedPartitions:
-				fmt.Fprintf(os.Stderr, "%% %v\n", e)
-				fmt.Printf("AssignedPartitions error: %v\n", e)
 				err = c.Assign(e.Partitions)
 				if err != nil {
-					fmt.Printf("Assign has error: %v", err)
+					fmt.Printf("Assign has error: %v\n", err)
+				} else {
+					fmt.Printf("AssignedPartitions: %v\n", e.Partitions)
 				}
 			case kafka.RevokedPartitions:
-				fmt.Fprintf(os.Stderr, "%% %v\n", e)
-				fmt.Printf("RevokedPartitions error: %v\n", e)
 				err = c.Unassign()
 				if err != nil {
-					fmt.Printf("Unassign has error: %v", err)
+					fmt.Printf("Unassign has error: %v\n", err)
+				} else {
+					fmt.Printf("RevokedPartitions: %v\n", e)
 				}
 			case *kafka.Message:
-				fmt.Printf("%% Message on %s:\n%s\n",
+				fmt.Printf("Message on %s:\n%s\n",
 					e.TopicPartition, string(e.Value))
 				consumerOuput <- e.Value
 			case kafka.PartitionEOF:
-				fmt.Printf("%% Reached %v\n", e)
+				fmt.Printf("Reached %v\n", e)
 			case kafka.Error:
 				// Errors should generally be considered as informational, the client will try to automatically recover
-				fmt.Fprintf(os.Stderr, "%% Error: %v\n", e)
 				fmt.Printf("Kafka Error: %v\n", e)
 			}
 		}
