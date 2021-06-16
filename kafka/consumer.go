@@ -21,16 +21,13 @@ func Start(consumerOuput chan []byte) {
 	fmt.Printf("Kafka bootstrap servers: %v\n", conf[ccloud.BOOTSTRAP_SERVERS])
 	// Create Consumer instance
 	c, err := kafka.NewConsumer(&kafka.ConfigMap{
-		ccloud.METADATA_BROKER_LIST: conf[ccloud.METADATA_BROKER_LIST],
-		ccloud.BOOTSTRAP_SERVERS:    conf[ccloud.BOOTSTRAP_SERVERS],
-		ccloud.SASL_MECHANISMS:      conf[ccloud.SASL_MECHANISMS],
-		ccloud.SECURITY_PROTOCOL:    conf[ccloud.SECURITY_PROTOCOL],
-		ccloud.SASL_USERNAME:        conf[ccloud.SASL_USERNAME],
-		ccloud.SASL_PASSWORD:        conf[ccloud.SASL_PASSWORD],
-		ccloud.GROUP_ID:             conf[ccloud.GROUP_ID],
-		"go.events.channel.enable":  true,
-		"enable.partition.eof":      true,
-		"auto.offset.reset":         "earliest",
+		ccloud.BOOTSTRAP_SERVERS:          conf[ccloud.BOOTSTRAP_SERVERS],
+		ccloud.GROUP_ID:                   conf[ccloud.GROUP_ID],
+		"session.timeout.ms":              6000,
+		"go.events.channel.enable":        true,
+		"go.application.rebalance.enable": true,
+		"enable.partition.eof":            true,
+		"auto.offset.reset":               "earliest",
 	})
 	if err != nil {
 		fmt.Printf("Failed to create consumer: %s\n", err)
