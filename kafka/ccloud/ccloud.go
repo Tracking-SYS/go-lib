@@ -37,6 +37,8 @@ const (
 	GROUP_ID                        = "group.id"
 	GO_EVENTS_CHANNEL_ENABLE        = "go.events.channel.enable"
 	GO_APPLICATION_REBALANCE_ENABLE = "go.application.rebalance.enable"
+	NUM_PARTITIONS                  = "num.partitions"
+	REPLICATION_FACTOR              = "replication.factor"
 )
 
 // ParseArgs parses the command line arguments and

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strconv"
 	"time"
 
 	confluentKafka "github.com/confluentinc/confluent-kafka-go/kafka"
@@ -63,14 +64,26 @@ func (kp *KafkaProducer) CreateTopic(topic string) {
 		os.Exit(1)
 	}
 
+	numPartitions, err := strconv.Atoi(kp.conf[ccloud.NUM_PARTITIONS])
+	if err != nil {
+		fmt.Printf("NUM_PARTITIONS ERROR: %s\n", err)
+		numPartitions = 1
+	}
+
+	replicationFactor, err := strconv.Atoi(kp.conf[ccloud.REPLICATION_FACTOR])
+	if err != nil {
+		fmt.Printf("REPLICATION_FACTOR ERROR: %s\n", err)
+		replicationFactor = 3
+	}
+
 	results, err := adminClient.CreateTopics(
 		ctx,
 		// Multiple topics can be created simultaneously
 		// by providing more TopicSpecification structs here.
 		[]confluentKafka.TopicSpecification{{
 			Topic:             topic,
-			NumPartitions:     1,
-			ReplicationFactor: 3}},
+			NumPartitions:     numPartitions,
+			ReplicationFactor: replicationFactor}},
 		// Admin options
 		confluentKafka.SetAdminOperationTimeout(maxDur),
 	)
