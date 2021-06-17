@@ -82,5 +82,6 @@ func Start(consumerOuput chan []byte) {
 	}
 
 	fmt.Printf("Closing consumer\n")
+	close(consumerOuput)
 	c.Close()
 }
