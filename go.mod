@@ -6,8 +6,10 @@ require (
 	github.com/confluentinc/confluent-kafka-go v1.7.0
 	github.com/go-chi/chi v1.5.4
 	github.com/go-chi/cors v1.2.0
+	github.com/gorilla/schema v1.2.0
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
 	github.com/prometheus/client_golang v1.10.0
+	github.com/ua-parser/uap-go v0.0.0-20210121150957-347a3497cc39
 	go.opentelemetry.io/contrib/instrumentation/host v0.20.0
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.20.0
 	go.opentelemetry.io/contrib/instrumentation/runtime v0.20.0
@@ -16,4 +18,5 @@ require (
 	go.opentelemetry.io/otel/metric v0.20.0
 	go.opentelemetry.io/otel/sdk v0.20.0
 	go.opentelemetry.io/otel/sdk/metric v0.20.0
+	gopkg.in/yaml.v2 v2.3.0
 )
