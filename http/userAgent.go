@@ -1,6 +1,7 @@
 package http
 
 import (
+	_ "embed"
 	"strings"
 
 	"github.com/ua-parser/uap-go/uaparser"
