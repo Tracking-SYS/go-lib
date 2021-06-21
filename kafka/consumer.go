@@ -71,9 +71,7 @@ func Start(consumerOuput chan []byte) {
 			case *kafka.Message:
 				fmt.Printf("Message on %s:\n%s\n",
 					e.TopicPartition, string(e.Value))
-				go func(msg []byte) {
-					consumerOuput <- msg
-				}(e.Value)
+				consumerOuput <- e.Value
 			case kafka.PartitionEOF:
 				fmt.Printf("Reached %v\n", e)
 			case kafka.Error:
