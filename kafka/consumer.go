@@ -13,9 +13,9 @@ import (
 // ConsumeRecordValue represents the struct of the value in a Kafka message
 type ConsumeRecordValue interface{}
 
-func Start(consumerOuput chan []byte) {
+func Start(consumerOuput chan []byte, topic string) {
 	// Initialization
-	configFile, topic := ccloud.ParseArgs()
+	configFile := ccloud.ParseArgs()
 	conf := ccloud.ReadCCloudConfig(*configFile)
 
 	fmt.Printf("Kafka bootstrap servers: %v\n", conf[ccloud.BOOTSTRAP_SERVERS])
@@ -35,12 +35,12 @@ func Start(consumerOuput chan []byte) {
 	}
 
 	// Subscribe to topic
-	err = c.SubscribeTopics([]string{*topic}, nil)
+	err = c.SubscribeTopics([]string{topic}, nil)
 	if err != nil {
 		fmt.Printf("SubscribeTopics has error: %v\n", err)
 	}
 
-	fmt.Printf("Topic %v has been subscribed\n", *topic)
+	fmt.Printf("Topic %v has been subscribed\n", topic)
 	// Set up a channel for handling Ctrl-C, etc
 	sigchan := make(chan os.Signal, 1)
 	signal.Notify(sigchan, syscall.SIGINT, syscall.SIGTERM)

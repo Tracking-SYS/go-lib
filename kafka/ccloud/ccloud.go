@@ -25,7 +25,6 @@ import (
 )
 
 var configFile *string
-var topic *string
 
 const (
 	METADATA_BROKER_LIST            = "metadata.broker.list"
@@ -42,22 +41,19 @@ const (
 )
 
 // ParseArgs parses the command line arguments and
-// returns the config file and topic on success, or exits on error
-func ParseArgs() (*string, *string) {
+// returns the config file on success, or exits on error
+func ParseArgs() *string {
 	if flag.Lookup("f") == nil {
 		configFile = flag.String("f", "", "Path to Confluent Cloud configuration file")
 	}
-	if flag.Lookup("t") == nil {
-		topic = flag.String("t", "", "Topic name")
-	}
 
 	flag.Parse()
-	if *configFile == "" || *topic == "" {
+	if *configFile == "" {
 		flag.Usage()
 		os.Exit(2) // the same exit code flag.Parse uses
 	}
 
-	return configFile, topic
+	return configFile
 
 }
 

@@ -1,3 +1,2 @@
-lint_cmd: 
+lint:
 	golangci-lint run -v || true
-lint: lint_cmd
