@@ -28,6 +28,11 @@ func (kp *KafkaProducer) InitConfig() error {
 }
 
 func (kp *KafkaProducer) CreateProducerInstance() error {
+	switch {
+	case kp.conf[ccloud.BOOTSTRAP_SERVERS] == "":
+		return fmt.Errorf("miss BOOTSTRAP_SERVERS")
+	}
+
 	// Create Producer instance
 	producer, err := confluentKafka.NewProducer(&confluentKafka.ConfigMap{
 		ccloud.METADATA_BROKER_LIST: kp.conf[ccloud.METADATA_BROKER_LIST],
