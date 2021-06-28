@@ -4,19 +4,25 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/lk153/go-lib/kafka/ccloud"
 )
 
+var mapMutex = sync.RWMutex{}
+
 // ConsumeRecordValue represents the struct of the value in a Kafka message
 type ConsumeRecordValue interface{}
 
 func Start(consumerOuput chan []byte, topic string) {
+
 	// Initialization
+	mapMutex.Lock()
 	configFile := ccloud.ParseArgs()
 	conf := ccloud.ReadCCloudConfig(*configFile)
+	mapMutex.Unlock()
 
 	fmt.Printf("Kafka bootstrap servers: %v\n", conf[ccloud.BOOTSTRAP_SERVERS])
 	// Create Consumer instance
@@ -44,7 +50,6 @@ func Start(consumerOuput chan []byte, topic string) {
 	// Set up a channel for handling Ctrl-C, etc
 	sigchan := make(chan os.Signal, 1)
 	signal.Notify(sigchan, syscall.SIGINT, syscall.SIGTERM)
-
 	// Process messages
 	run := true
 	for run {
