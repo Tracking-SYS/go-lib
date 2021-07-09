@@ -7,8 +7,8 @@ import (
 	"sync"
 	"syscall"
 
+	"github.com/Tracking-SYS/go-lib/kafka/ccloud"
 	"github.com/confluentinc/confluent-kafka-go/kafka"
-	"github.com/lk153/go-lib/kafka/ccloud"
 )
 
 var mapMutex = sync.RWMutex{}

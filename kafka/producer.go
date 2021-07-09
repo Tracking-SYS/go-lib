@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/Tracking-SYS/go-lib/kafka/ccloud"
 	confluentKafka "github.com/confluentinc/confluent-kafka-go/kafka"
-	"github.com/lk153/go-lib/kafka/ccloud"
 )
 
 type KafkaProducer struct {

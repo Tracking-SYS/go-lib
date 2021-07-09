@@ -1,4 +1,4 @@
-module github.com/lk153/go-lib
+module github.com/Tracking-SYS/go-lib
 
 go 1.16
 

@@ -1,5 +1,5 @@
 # GO LIB
-[![](https://travis-ci.com/lk153/go-lib.svg?branch=main)](https://travis-ci.com/github/lk153/go-lib/builds)
+[![](https://travis-ci.com/Tracking-SYS/go-lib.svg?branch=main)](https://travis-ci.com/github/Tracking-SYS/go-lib/builds)
 ## Preparation
 
 1. Install **golangci-lint** for Go linters aggregator. Follow [here](https://golangci-lint.run/usage/install/#local-installation)
@@ -8,17 +8,17 @@
 
 1. This library use under as private package. So remember set env ```GOPRIVATE``` before import to it into your project
 
-        export GOPRIVATE=github.com/lk153
+        export GOPRIVATE=github.com/Tracking-SYS
 
 2. Download package with latest version
         
-        go get -u github.com/lk153/go-lib
+        go get -u github.com/Tracking-SYS/go-lib
 
 3. Import specific package
 
         import (
-                "github.com/lk153/go-lib/http"
-                "github.com/lk153/go-lib/trace"
+                "github.com/Tracking-SYS/go-lib/http"
+                "github.com/Tracking-SYS/go-lib/trace"
 
                  ....
         )

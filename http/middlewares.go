@@ -6,9 +6,9 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/Tracking-SYS/go-lib/log"
+	"github.com/Tracking-SYS/go-lib/reflection"
 	jwt "github.com/dgrijalva/jwt-go"
-	"github.com/lk153/go-lib/log"
-	"github.com/lk153/go-lib/reflection"
 )
 
 type userMetadata struct {

@@ -3,10 +3,10 @@ package http
 import (
 	"net/http"
 
+	"github.com/Tracking-SYS/go-lib/trace"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/cors"
-	"github.com/lk153/go-lib/trace"
 )
 
 //NewHTTPBuilder ...

@@ -33,7 +33,7 @@ before_install:
   - golangci-lint --version
 
 install:
-  - cd /home/travis/gopath/src/github.com/lk153/go-lib
+  - cd /home/travis/gopath/src/github.com/Tracking-SYS/go-lib
   - go mod tidy
   - go mod vendor
 
