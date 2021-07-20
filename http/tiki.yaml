@@ -1,5 +1,0 @@
-user_agent_parsers:
-  - regex: '(?i)(TikiConsumer|TikiConsumerUAT|TikiProject|Tiki)/(\d+)\.(\d+)(?:\.(\d+))'
-  - regex: '(?i)(TikiNative)$'
-os_parsers:
-device_parsers:

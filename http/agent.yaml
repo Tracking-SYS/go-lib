@@ -1,0 +1,5 @@
+user_agent_parsers:
+  - regex: '(?i)(TSConsumer|TSConsumerUAT|TSProject|TS)/(\d+)\.(\d+)(?:\.(\d+))'
+  - regex: '(?i)(TSNative)$'
+os_parsers:
+device_parsers:

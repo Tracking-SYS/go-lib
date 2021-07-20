@@ -21,7 +21,7 @@ const (
 //go:embed "predefined.yaml"
 var predefinedBuf []byte
 
-//go:embed "tiki.yaml"
+//go:embed "agent.yaml"
 var customBuf []byte
 
 var parser = func() *uaparser.Parser {
