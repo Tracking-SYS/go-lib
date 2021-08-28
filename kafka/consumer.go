@@ -26,7 +26,7 @@ func Start(consumerOuput chan []byte, topic string) {
 
 	fmt.Printf("Kafka bootstrap servers: %v\n", conf[ccloud.BOOTSTRAP_SERVERS])
 	// Create Consumer instance
-	c, err := kafka.NewConsumer(&kafka.ConfigMap{
+	kafkaConfig := &kafka.ConfigMap{
 		ccloud.BOOTSTRAP_SERVERS:          conf[ccloud.BOOTSTRAP_SERVERS],
 		ccloud.GROUP_ID:                   conf[ccloud.GROUP_ID],
 		"session.timeout.ms":              6000,
@@ -34,7 +34,23 @@ func Start(consumerOuput chan []byte, topic string) {
 		"go.application.rebalance.enable": true,
 		"enable.partition.eof":            true,
 		"auto.offset.reset":               "earliest",
-	})
+	}
+	if conf[ccloud.METADATA_BROKER_LIST] != "" {
+		err := kafkaConfig.SetKey(ccloud.METADATA_BROKER_LIST, conf[ccloud.METADATA_BROKER_LIST])
+		if err != nil {
+			fmt.Printf("Failed to set key: %s\n", err)
+			os.Exit(1)
+		}
+	}
+	if conf[ccloud.BOOTSTRAP_SERVERS] != "" {
+		err := kafkaConfig.SetKey(ccloud.BOOTSTRAP_SERVERS, conf[ccloud.BOOTSTRAP_SERVERS])
+		if err != nil {
+			fmt.Printf("Failed to set key: %s\n", err)
+			os.Exit(1)
+		}
+	}
+
+	c, err := kafka.NewConsumer(kafkaConfig)
 	if err != nil {
 		fmt.Printf("Failed to create consumer: %s\n", err)
 		os.Exit(1)
