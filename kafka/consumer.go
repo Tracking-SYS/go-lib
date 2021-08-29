@@ -1,6 +1,7 @@
 package kafka
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/signal"
@@ -23,32 +24,31 @@ func Start(consumerOuput chan []byte, topic string) {
 	configFile := ccloud.ParseArgs()
 	conf := ccloud.ReadCCloudConfig(*configFile)
 	mapMutex.Unlock()
-
 	fmt.Printf("Kafka bootstrap servers: %v\n", conf[ccloud.BOOTSTRAP_SERVERS])
 	// Create Consumer instance
 	kafkaConfig := &kafka.ConfigMap{
-		ccloud.BOOTSTRAP_SERVERS:          conf[ccloud.BOOTSTRAP_SERVERS],
-		ccloud.GROUP_ID:                   conf[ccloud.GROUP_ID],
-		"session.timeout.ms":              6000,
+		"session.timeout.ms":              10000,
 		"go.events.channel.enable":        true,
 		"go.application.rebalance.enable": true,
-		"enable.partition.eof":            true,
-		"auto.offset.reset":               "earliest",
+		"default.topic.config":            kafka.ConfigMap{"auto.offset.reset": "earliest"},
 	}
-	if conf[ccloud.METADATA_BROKER_LIST] != "" {
-		err := kafkaConfig.SetKey(ccloud.METADATA_BROKER_LIST, conf[ccloud.METADATA_BROKER_LIST])
-		if err != nil {
-			fmt.Printf("Failed to set key: %s\n", err)
-			os.Exit(1)
+
+	for k, v := range conf {
+		if v != "" {
+			err := kafkaConfig.SetKey(k, v)
+			if err != nil {
+				fmt.Printf("Failed to set key: %s\n", err)
+				os.Exit(1)
+			}
 		}
 	}
-	if conf[ccloud.BOOTSTRAP_SERVERS] != "" {
-		err := kafkaConfig.SetKey(ccloud.BOOTSTRAP_SERVERS, conf[ccloud.BOOTSTRAP_SERVERS])
-		if err != nil {
-			fmt.Printf("Failed to set key: %s\n", err)
-			os.Exit(1)
-		}
+
+	kafkaConfigJSON, err := json.Marshal(kafkaConfig)
+	if err != nil {
+		fmt.Printf("Error: %s", err)
+		return
 	}
+	fmt.Printf("%v\n", string(kafkaConfigJSON))
 
 	c, err := kafka.NewConsumer(kafkaConfig)
 	if err != nil {

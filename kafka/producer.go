@@ -2,6 +2,7 @@ package kafka
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"strconv"
@@ -28,19 +29,29 @@ func (kp *KafkaProducer) InitConfig() error {
 }
 
 func (kp *KafkaProducer) CreateProducerInstance() error {
-	switch {
-	case kp.conf[ccloud.BOOTSTRAP_SERVERS] == "":
-		return fmt.Errorf("miss BOOTSTRAP_SERVERS")
+	kafkaConfig := &confluentKafka.ConfigMap{
+		"session.timeout.ms":   10000,
+		"default.topic.config": confluentKafka.ConfigMap{"auto.offset.reset": "earliest"},
 	}
 
+	for k, v := range kp.conf {
+		if v != "" {
+			err := kafkaConfig.SetKey(k, v)
+			if err != nil {
+				fmt.Printf("Failed to set key: %s\n", err)
+				os.Exit(1)
+			}
+		}
+	}
+
+	kafkaConfigJSON, err := json.Marshal(kafkaConfig)
+	if err != nil {
+		fmt.Printf("Error: %s", err)
+		return err
+	}
+	fmt.Printf("%v\n", string(kafkaConfigJSON))
 	// Create Producer instance
-	producer, err := confluentKafka.NewProducer(&confluentKafka.ConfigMap{
-		// ccloud.METADATA_BROKER_LIST: kp.conf[ccloud.METADATA_BROKER_LIST],
-		ccloud.BOOTSTRAP_SERVERS: kp.conf[ccloud.BOOTSTRAP_SERVERS],
-		ccloud.SASL_MECHANISMS:   kp.conf[ccloud.SASL_MECHANISMS],
-		ccloud.SECURITY_PROTOCOL: kp.conf[ccloud.SECURITY_PROTOCOL],
-		ccloud.SASL_USERNAME:     kp.conf[ccloud.SASL_USERNAME],
-		ccloud.SASL_PASSWORD:     kp.conf[ccloud.SASL_PASSWORD]})
+	producer, err := confluentKafka.NewProducer(kafkaConfig)
 	if err != nil {
 		fmt.Printf("Failed to create producer: %s\n", err)
 		return err
