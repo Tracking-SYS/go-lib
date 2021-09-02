@@ -9,8 +9,14 @@ import (
 	"time"
 
 	"github.com/Tracking-SYS/go-lib/kafka/ccloud"
+	"github.com/Tracking-SYS/go-lib/slice"
 	confluentKafka "github.com/confluentinc/confluent-kafka-go/kafka"
 )
+
+var excludeConfig = []string{
+	"num.partitions",
+	"replication.factor",
+}
 
 type KafkaProducer struct {
 	ConfigFile *string
@@ -35,12 +41,14 @@ func (kp *KafkaProducer) CreateProducerInstance() error {
 	}
 
 	for k, v := range kp.conf {
-		if v != "" {
-			err := kafkaConfig.SetKey(k, v)
-			if err != nil {
-				fmt.Printf("Failed to set key: %s\n", err)
-				os.Exit(1)
-			}
+		if v == "" || slice.Contains(excludeConfig, k) {
+			continue
+		}
+
+		err := kafkaConfig.SetKey(k, v)
+		if err != nil {
+			fmt.Printf("Failed to set key: %s\n", err)
+			os.Exit(1)
 		}
 	}
 
@@ -80,16 +88,20 @@ func (kp *KafkaProducer) CreateTopic(topic string) {
 		os.Exit(1)
 	}
 
-	numPartitions, err := strconv.Atoi(kp.conf[ccloud.NUM_PARTITIONS])
-	if err != nil {
-		fmt.Printf("NUM_PARTITIONS ERROR: %s\n", err)
-		numPartitions = 1
+	numPartitions := 1
+	if kp.conf[ccloud.NUM_PARTITIONS] != "" {
+		numPartitions, err = strconv.Atoi(kp.conf[ccloud.NUM_PARTITIONS])
+		if err != nil {
+			fmt.Printf("NUM_PARTITIONS ERROR: %s\n", err)
+		}
 	}
 
-	replicationFactor, err := strconv.Atoi(kp.conf[ccloud.REPLICATION_FACTOR])
-	if err != nil {
-		fmt.Printf("REPLICATION_FACTOR ERROR: %s\n", err)
-		replicationFactor = 3
+	replicationFactor := 3
+	if kp.conf[ccloud.REPLICATION_FACTOR] != "" {
+		replicationFactor, err = strconv.Atoi(kp.conf[ccloud.REPLICATION_FACTOR])
+		if err != nil {
+			fmt.Printf("REPLICATION_FACTOR ERROR: %s\n", err)
+		}
 	}
 
 	results, err := adminClient.CreateTopics(
