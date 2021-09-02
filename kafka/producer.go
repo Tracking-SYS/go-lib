@@ -18,29 +18,32 @@ var excludeConfig = []string{
 	"replication.factor",
 }
 
-type KafkaProducer struct {
+//Producer ...
+type Producer struct {
 	ConfigFile *string
-	conf       map[string]string
-	producer   *confluentKafka.Producer
+	Conf       map[string]string
+	Producer   *confluentKafka.Producer
 }
 
-func (kp *KafkaProducer) InitConfig() error {
+//InitConfig ...
+func (kp *Producer) InitConfig() error {
 	if *kp.ConfigFile == "" {
 		fmt.Printf("empty configFile\n")
 		return fmt.Errorf("empty configFile")
 	}
 
-	kp.conf = ccloud.ReadCCloudConfig(*kp.ConfigFile)
+	kp.Conf = ccloud.ReadCCloudConfig(*kp.ConfigFile)
 	return nil
 }
 
-func (kp *KafkaProducer) CreateProducerInstance() error {
+//CreateProducerInstance ...
+func (kp *Producer) CreateProducerInstance() error {
 	kafkaConfig := &confluentKafka.ConfigMap{
 		"session.timeout.ms":   10000,
 		"default.topic.config": confluentKafka.ConfigMap{"auto.offset.reset": "earliest"},
 	}
 
-	for k, v := range kp.conf {
+	for k, v := range kp.Conf {
 		if v == "" || slice.Contains(excludeConfig, k) {
 			continue
 		}
@@ -65,13 +68,13 @@ func (kp *KafkaProducer) CreateProducerInstance() error {
 		return err
 	}
 
-	kp.producer = producer
+	kp.Producer = producer
 	return nil
 }
 
 // CreateTopic creates a topic using the Admin Client API
-func (kp *KafkaProducer) CreateTopic(topic string) {
-	adminClient, err := confluentKafka.NewAdminClientFromProducer(kp.producer)
+func (kp *Producer) CreateTopic(topic string) {
+	adminClient, err := confluentKafka.NewAdminClientFromProducer(kp.Producer)
 	if err != nil {
 		fmt.Printf("Failed to create new admin client from producer: %s\n", err)
 		os.Exit(1)
@@ -89,16 +92,16 @@ func (kp *KafkaProducer) CreateTopic(topic string) {
 	}
 
 	numPartitions := 1
-	if kp.conf[ccloud.NUM_PARTITIONS] != "" {
-		numPartitions, err = strconv.Atoi(kp.conf[ccloud.NUM_PARTITIONS])
+	if kp.Conf[ccloud.NUM_PARTITIONS] != "" {
+		numPartitions, err = strconv.Atoi(kp.Conf[ccloud.NUM_PARTITIONS])
 		if err != nil {
 			fmt.Printf("NUM_PARTITIONS ERROR: %s\n", err)
 		}
 	}
 
 	replicationFactor := 3
-	if kp.conf[ccloud.REPLICATION_FACTOR] != "" {
-		replicationFactor, err = strconv.Atoi(kp.conf[ccloud.REPLICATION_FACTOR])
+	if kp.Conf[ccloud.REPLICATION_FACTOR] != "" {
+		replicationFactor, err = strconv.Atoi(kp.Conf[ccloud.REPLICATION_FACTOR])
 		if err != nil {
 			fmt.Printf("REPLICATION_FACTOR ERROR: %s\n", err)
 		}
@@ -132,14 +135,15 @@ func (kp *KafkaProducer) CreateTopic(topic string) {
 	adminClient.Close()
 }
 
-func (kp *KafkaProducer) ProduceMessage(
+//ProduceMessage ...
+func (kp *Producer) ProduceMessage(
 	topic *string,
 	recordValue string,
 ) error {
 	doneChan := make(chan bool)
 	go func() {
 		defer close(doneChan)
-		for e := range kp.producer.Events() {
+		for e := range kp.Producer.Events() {
 			switch ev := e.(type) {
 			case *confluentKafka.Message:
 				m := ev
@@ -163,7 +167,7 @@ func (kp *KafkaProducer) ProduceMessage(
 			Partition: confluentKafka.PartitionAny,
 		}, Value: []byte(recordValue),
 	}
-	kp.producer.ProduceChannel() <- msg
+	kp.Producer.ProduceChannel() <- msg
 
 	// wait for delivery report goroutine to finish
 	<-doneChan
