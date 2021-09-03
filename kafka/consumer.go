@@ -1,7 +1,6 @@
 package kafka
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"os/signal"
@@ -10,6 +9,7 @@ import (
 
 	"github.com/Tracking-SYS/go-lib/kafka/ccloud"
 	"github.com/confluentinc/confluent-kafka-go/kafka"
+	confluentKafka "github.com/confluentinc/confluent-kafka-go/kafka"
 )
 
 var mapMutex = sync.RWMutex{}
@@ -17,14 +17,30 @@ var mapMutex = sync.RWMutex{}
 // ConsumeRecordValue represents the struct of the value in a Kafka message
 type ConsumeRecordValue interface{}
 
-func Start(consumerOuput chan []byte, topic string) {
+//Consumer ...
+type Consumer struct {
+	ConfigFile *string
+	Conf       map[string]string
+	Consumer   *confluentKafka.Consumer
+}
 
-	// Initialization
+//InitConfig ...
+func (kc *Consumer) InitConfig() error {
+	if *kc.ConfigFile == "" {
+		fmt.Printf("empty configFile\n")
+		return fmt.Errorf("empty configFile")
+	}
+
 	mapMutex.Lock()
-	configFile := ccloud.ParseArgs()
-	conf := ccloud.ReadCCloudConfig(*configFile)
+	kc.Conf = ccloud.ReadCCloudConfig(*kc.ConfigFile)
 	mapMutex.Unlock()
-	fmt.Printf("Kafka bootstrap servers: %v\n", conf[ccloud.BOOTSTRAP_SERVERS])
+	return nil
+}
+
+//CreateConsumerInstance ...
+func (kc *Consumer) CreateConsumerInstance() error {
+	// Initialization
+	fmt.Printf("Kafka bootstrap servers: %v\n", kc.Conf[ccloud.BOOTSTRAP_SERVERS])
 	// Create Consumer instance
 	kafkaConfig := &kafka.ConfigMap{
 		"session.timeout.ms":              10000,
@@ -33,31 +49,32 @@ func Start(consumerOuput chan []byte, topic string) {
 		"default.topic.config":            kafka.ConfigMap{"auto.offset.reset": "earliest"},
 	}
 
-	for k, v := range conf {
+	//Set custom configuration from yaml
+	for k, v := range kc.Conf {
 		if v != "" {
 			err := kafkaConfig.SetKey(k, v)
 			if err != nil {
 				fmt.Printf("Failed to set key: %s\n", err)
-				os.Exit(1)
+				return err
 			}
 		}
 	}
 
-	kafkaConfigJSON, err := json.Marshal(kafkaConfig)
-	if err != nil {
-		fmt.Printf("Error: %s", err)
-		return
-	}
-	fmt.Printf("%v\n", string(kafkaConfigJSON))
-
+	//Create consumer instance
 	c, err := kafka.NewConsumer(kafkaConfig)
 	if err != nil {
 		fmt.Printf("Failed to create consumer: %s\n", err)
-		os.Exit(1)
+		return err
 	}
 
+	kc.Consumer = c
+	return nil
+}
+
+//Start ...
+func (kc *Consumer) Start(consumerOuput chan []byte, topic string) {
 	// Subscribe to topic
-	err = c.SubscribeTopics([]string{topic}, nil)
+	err := kc.Consumer.SubscribeTopics([]string{topic}, nil)
 	if err != nil {
 		fmt.Printf("SubscribeTopics has error: %v\n", err)
 	}
@@ -73,17 +90,17 @@ func Start(consumerOuput chan []byte, topic string) {
 		case sig := <-sigchan:
 			fmt.Printf("Caught signal %v: terminating\n", sig)
 			run = false
-		case ev := <-c.Events():
+		case ev := <-kc.Consumer.Events():
 			switch e := ev.(type) {
 			case kafka.AssignedPartitions:
-				err = c.Assign(e.Partitions)
+				err = kc.Consumer.Assign(e.Partitions)
 				if err != nil {
 					fmt.Printf("Assign has error: %v\n", err)
 				} else {
 					fmt.Printf("AssignedPartitions: %v\n", e.Partitions)
 				}
 			case kafka.RevokedPartitions:
-				err = c.Unassign()
+				err = kc.Consumer.Unassign()
 				if err != nil {
 					fmt.Printf("Unassign has error: %v\n", err)
 				} else {
@@ -104,5 +121,5 @@ func Start(consumerOuput chan []byte, topic string) {
 
 	fmt.Printf("Closing consumer\n")
 	close(consumerOuput)
-	c.Close()
+	kc.Consumer.Close()
 }
