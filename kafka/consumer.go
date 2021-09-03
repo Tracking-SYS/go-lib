@@ -119,7 +119,7 @@ func (kc *Consumer) Start(consumerOuput chan []byte, topic string) {
 		}
 	}
 
-	fmt.Printf("Closing consumer\n")
+	fmt.Printf("Closing consumer topic: %s\n", topic)
 	close(consumerOuput)
 	kc.Consumer.Close()
 }
