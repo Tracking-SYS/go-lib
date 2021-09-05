@@ -72,14 +72,14 @@ func (kc *Consumer) CreateConsumerInstance() error {
 }
 
 //Start ...
-func (kc *Consumer) Start(consumerOuput chan []byte, topic string) {
+func (kc *Consumer) Start(consumerOuput map[string]chan []byte, topics []string) {
 	// Subscribe to topic
-	err := kc.Consumer.SubscribeTopics([]string{topic}, nil)
+	err := kc.Consumer.SubscribeTopics(topics, nil)
 	if err != nil {
-		fmt.Printf("SubscribeTopics has error: %v\n", err)
+		fmt.Printf("SubscribeTopics %s has error: %v\n", topics, err)
 	}
 
-	fmt.Printf("Topic %v has been subscribed\n", topic)
+	fmt.Printf("Topics %v has been subscribed\n", topics)
 	// Set up a channel for handling Ctrl-C, etc
 	sigchan := make(chan os.Signal, 1)
 	signal.Notify(sigchan, syscall.SIGINT, syscall.SIGTERM)
@@ -109,7 +109,7 @@ func (kc *Consumer) Start(consumerOuput chan []byte, topic string) {
 			case *kafka.Message:
 				fmt.Printf("Message on %s:\n%s\n",
 					e.TopicPartition, string(e.Value))
-				consumerOuput <- e.Value
+				consumerOuput[*e.TopicPartition.Topic] <- e.Value
 			case kafka.PartitionEOF:
 				fmt.Printf("Reached %v\n", e)
 			case kafka.Error:
@@ -119,7 +119,9 @@ func (kc *Consumer) Start(consumerOuput chan []byte, topic string) {
 		}
 	}
 
-	fmt.Printf("Closing consumer topic: %s\n", topic)
-	close(consumerOuput)
+	fmt.Printf("Closing consumer topics: %s\n", topics)
+	for _, c := range consumerOuput {
+		close(c)
+	}
 	kc.Consumer.Close()
 }
