@@ -8,7 +8,7 @@ import (
 
 	"github.com/Tracking-SYS/go-lib/log"
 	"github.com/Tracking-SYS/go-lib/reflection"
-	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt"
 )
 
 type userMetadata struct {
@@ -16,6 +16,7 @@ type userMetadata struct {
 	TrackityID string `query_string:"trackity_id"`
 }
 
+// DeviceInfo ...
 type DeviceInfo struct {
 	// android, ios, web, mweb
 	PlatformName string `json:"platform_name,omitempty"`
@@ -39,11 +40,13 @@ type DeviceInfo struct {
 	IsBot bool `json:"is_bot,omitempty"`
 }
 
+// RequestInfo ...
 type RequestInfo struct {
 	userMetadata userMetadata
 	DeviceInfo   *DeviceInfo
 }
 
+// ExtractUserMetaFromRequest ...
 func ExtractUserMetaFromRequest(req *http.Request) interface{} {
 	query := req.URL.Query()
 	var queryParams userMetadata
@@ -114,7 +117,7 @@ func decodeTokenUnVerify(token string) (int64, error) {
 	return customerID, nil
 }
 
-// Rules priority order:
+// GetTokenFromReq Rules priority order:
 // 1.header Authorization
 // 2.header X-Access-Token
 // 3.cookie tracking-access-token
@@ -126,6 +129,7 @@ func GetTokenFromReq(req *http.Request) string {
 	).(string)
 }
 
+// GetCookieVal ...
 func GetCookieVal(req *http.Request, key string) string {
 	if cookie, err := req.Cookie(key); err == nil && cookie.Value != "" {
 		return strings.TrimSpace(cookie.Value)
